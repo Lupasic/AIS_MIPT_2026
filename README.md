@@ -13,8 +13,8 @@ All class related material can be found in corresponding folder/task_data
 
 
 # Lab slides
-* [Lab 1 (Reproducible environment setup: Conda, UV, Docker)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/labs/01/AIS_lab01.pdf)
-* [Lab 2 (Intro to ROS2: Concepts, Architecture, Tools)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/labs/02/AIS_lab02.pdf) 
+* [Lab 1 (Reproducible environment setup: Conda, UV, Docker)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lab/01/AIS_lab01.pdf)
+* [Lab 2 (Intro to ROS2: Concepts, Architecture, Tools)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lab/02/AIS_lab02.pdf) 
 
 # HWs
 * [HW 1 (Reproducible environment setup: Conda, UV, Docker)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/01/AIS_hw01.pdf)
