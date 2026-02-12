@@ -1,0 +1,170 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, HW 1} %% that will be typeset on the
+\subtitle{Reproucible environment setup:  
+\\ Conda, UV, Docker \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+% \usepackage{subfigure}
+\usepackage{floatrow}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+% \usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}[numbered]
+\usetikzlibrary{graphs}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+\begin{frame}[t]{Task 1}
+\vspace{-0.3cm}
+\textbf{Short description}:
+Describe your experience with vibecoding (AI coding assistants). 
+
+If you have no prior experience, describe your expectations or the reasons why you haven't tried it yet (instead of answering the Requirements section below).
+
+\textbf{Artifacts}: Report in pdf format.
+
+\textbf{Requirements}
+\footnotesize
+\begin{enumerate}
+    \item What tasks did you try to solve using vibecoding? Which tools did you use?
+    \item What did you like and dislike about the tools?
+    \item What challenges or hallucinations did you encounter?
+    \item How did you verify the correctness of the generated code?
+    \item Which tools would you recommend to a friend and why?
+    \item What would you like to learn about vibecoding in the next lecture?
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[t]{Task 2}
+\vspace{-0.3cm}
+\textbf{Short description}:
+Build a Docker image with ROS~2 Humble based on \texttt{ubuntu:jammy} with GPU, GUI, and host file access support.
+
+\textbf{Artifacts}: \texttt{Dockerfile}, \texttt{docker-compose.yml}, pdf file with brief explanation of your solution.
+
+
+\textbf{Requirements}
+\footnotesize
+\begin{multicols}{2}
+\begin{itemize}
+  \item Base image: \texttt{ubuntu:jammy}
+  \item ROS~2 Humble via official ROS repositories
+  \item UID/GID mapping for host file access
+  \item Start container using \texttt{docker compose}
+  \item Pass \texttt{ROS\_DOMAIN\_ID} as environment variable
+  \item Mounted volume for verification
+  \item \texttt{network\_mode: host}
+  \item NVIDIA Container Toolkit support (\texttt{nvidia-smi})
+  \item GUI support (activate \texttt{rviz2})
+  \item Container stays alive after \texttt{docker compose up} (can be solved via $command,\ tty\ or\ entrypoint$)
+  \item Interactive access via \texttt{docker exec -it}
+\end{itemize}
+\end{multicols}
+
+\end{frame}
+
+\begin{frame}[t]{Task 3}
+\framesubtitle{}
+\vspace{-0.3cm}
+\textbf{Short description}:
+set up and compare a Data Science environment using 4 different tools: \textbf{Conda}, \textbf{Poetry}, \textbf{uv}, and \textbf{Pixi}.
+
+\textbf{Artifacts}: Repository with configuration folders for each tool, \texttt{benchmark.py} script, and report in pdf format with comparison. Compare \textbf{Cold Install Time}, \textbf{Disk Usage}, and developer experience.
+
+\textbf{Requirements}
+\footnotesize
+\begin{enumerate}
+    \item \textbf{Benchmark Script}: Create \texttt{benchmark.py} that uses \texttt{numpy, pandas, matplotlib, plotly} to generate data and save a plot.
+    \item \textbf{Conda}: Create env from \texttt{environment.yaml}, export full lock-file.
+    \item \textbf{Poetry}: Init project, resolve dependencies, run script via \texttt{poetry run}.
+    \item \textbf{uv}: Create venv, install deps. Focus on resolution speed.
+    \item \textbf{Pixi}: Init project. Install Python deps + one system tool (e.g. \texttt{ffmpeg} or \texttt{graphviz}).
+\end{enumerate}
+
+\end{frame}
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}

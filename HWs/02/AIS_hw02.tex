@@ -1,0 +1,181 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, HW 2} %% that will be typeset on the
+\subtitle{VibeCoding  
+\\ ROS2 \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+% \usepackage{subfigure}
+\usepackage{floatrow}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+% \usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}[numbered]
+\usetikzlibrary{graphs}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+\begin{frame}[t]{Task 1}
+\vspace{-0.3cm}
+\textbf{Short description}:
+Pass the full <<Beginner: CLI tools>> \href{https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html}{ROS2 tutorial}
+
+\textbf{Artifacts}: Report in pdf format with your own screenshots.
+
+\end{frame}
+
+\begin{frame}[t]{Task 2}
+\vspace{-0.3cm}
+\textbf{Short description}:
+Configure a Dockerized ROS~2 environment to stream camera feed, detect contours, and handle interactive zoom (Z/X). Use \texttt{rosdep} for dependency management.
+
+\textbf{Artifacts}: \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{src/} (your ROS~2 package), and a PDF report with screenshots and usage instructions.
+
+
+\textbf{Requirements}
+\footnotesize
+\vspace*{-0.4cm}
+\begin{multicols}{2}
+\begin{itemize}
+    \item \textbf{Device Mapping}: Configure \texttt{docker-compose.yml} to access the host camera (e.g. \texttt{/dev/video0}).
+    \item \textbf{Image Source}: Use a standard ROS~2 driver (like \texttt{v4l2\_camera} or \texttt{usb\_cam}) to publish images. Check with \texttt{rqt}.
+    \item \textbf{Package Management}: Use \texttt{rosdep} to install dependencies. Do not install ROS packages via \texttt{apt} in \texttt{Dockerfile}.
+    \item \textbf{Processing Node}: Create a node to detect contours on the video stream and publish the result on other ros topic.
+    \item \textbf{Interaction}: Implement Zoom In (key 'Z') and Zoom Out (key 'X') functionality for the processed stream.
+\end{itemize}
+\end{multicols}
+
+\end{frame}
+
+\begin{frame}[t]{Task 3 (1)}
+\vspace{-0.3cm}
+\textbf{Context}:
+You have collected raw field data: High-frequency Magnetometer logs (nanosecond timestamps, noisy) and Low-frequency GPS logs (NMEA format).
+
+
+
+\textbf{Short description}:
+Create a production-ready package to fuse these streams and visualize magnetic anomalies.
+
+\textbf{Functional Requirements}:
+\begin{itemize}
+    \item \textbf{Data Pipeline}: Parse heterogeneous formats, synchronize data streams by time, and filter outliers.
+    \item \textbf{Visualization}: Generate an interactive \textbf{Plotly} heatmap.
+    \item \textbf{UX}: Implement dynamic threshold sliders and make a possibility to add OpenStreetMap background overlay.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Task 3 (2)}
+\vspace{-0.3cm}
+\textbf{Methodology}:
+\begin{itemize}
+    \item \textbf{TDD}: Strict Test-Driven Development. Write tests first. Coverage $>80\%$.
+    \item \textbf{OOP}: Design a modular architecture (Abstract Parsers, \texttt{SyncStrategy} pattern).
+    \item Use VibeCoding \textbf{MCP} for code verification and testing.
+\end{itemize}
+
+\textbf{Environment}:
+\begin{itemize}
+    \item Use \textbf{uv, Pixi} or other package manager.
+    \item Commit \texttt{uv.lock} or \texttt{pixi.lock} for absolute reproducibility.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Task 3 (3)}
+\vspace{-0.3cm}
+\textbf{Artifacts}:
+Docs in PDF format with the following sections:
+\begin{itemize}
+    \item \textbf{Architecture}: UML Class diagram of your solution.
+    \item \textbf{Metrics Analysis}: Justify your choices for synchronization windows and filtering thresholds. How do they affect the result?
+    \item \textbf{DevEx}: Reflection on the TDD process and modern tooling (\texttt{uv}/\texttt{pixi}, MCP).
+\end{itemize}
+
+\textbf{Repository}:
+Clean structure with \texttt{src/}, \texttt{tests/}, and config files.
+\end{frame}
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}
