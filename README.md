@@ -18,7 +18,7 @@ All class related material can be found in corresponding folder/task_data
 
 # HWs
 * [HW 1 (Reproducible environment setup: Conda, UV, Docker)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/01/AIS_hw01.pdf)
-* [HW 2 CAD_DET2 (Complex Detail)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/02/AIS_hw02.pdf) 
+* [HW 2 (Intro to ROS2: Concepts, Architecture, Tools)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/02/AIS_hw02.pdf) 
 
 
 # For contributors

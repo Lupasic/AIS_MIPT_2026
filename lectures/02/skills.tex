@@ -1,0 +1,297 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    basicstyle=\ttfamily\scriptsize,
+    breaklines=true,
+    xleftmargin=2em,
+    framexleftmargin=1.5em,
+}
+
+\lstset{style=mystyle}
+
+\title{Claude Skills}
+\subtitle{Формат записи повторяющихся инструкций для LLM}
+\date{17 февраля 2026}
+
+\begin{document}
+
+\frame{\titlepage}
+
+% ==================== СЛАЙД 1: ПРОБЛЕМА ====================
+
+\begin{frame}
+\frametitle{Проблема: объяснять одно и то же}
+
+\textbf{LLM не всё знает и умеет — нужны инструкции двух типов:}
+
+\vspace{0.3cm}
+
+\textbf{Требования (ЧТО делать):}
+\begin{itemize}
+    \item «Используй Stripe API v2024-10, не v2023-08. Всегда webhook-подтверждение»
+    \item «Отчёты клиентам: сначала executive summary, потом метрики, потом рекомендации»
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{Обучающие инструкции (КАК делать):}
+\begin{itemize}
+    \item «Для Excel с формулами: используй openpyxl, пиши формулы через .value = '=SUM(A1:A10)', не через numbers»
+    \item «Statistical significance в A/B тестах: chi-square для категориальных данных, t-test для числовых. Формула chi-square: ...»
+    \item «PostgreSQL async/await: всегда используй async with pool.acquire(), закрывай connection в finally блоке»
+\end{itemize}
+
+\vspace{0.3cm}
+
+\begin{block}{Claude Skills = формат записи обоих типов инструкций}
+\end{block}
+
+\end{frame}
+
+% ==================== СЛАЙД 2: РЕШЕНИЕ ====================
+
+\begin{frame}
+\frametitle{Решение: Claude Skills}
+
+\textbf{Skills} = папка с инструкциями, которую Claude подгружает автоматически
+
+\vspace{0.3cm}
+
+\begin{block}{Как работает}
+\begin{enumerate}
+    \item Один раз описываешь процесс в файле \texttt{SKILL.md}
+    \item Claude сам определяет, когда применить skill
+    \item Динамически подгружает только нужные инструкции
+    \item Выполняет задачу по стандарту без повторных объяснений
+\end{enumerate}
+\end{block}
+
+\vspace{0.3cm}
+
+\textbf{Результат:} Консистентность + экономия времени + масштабируемость
+
+\end{frame}
+
+% ==================== СЛАЙД 3: СТРУКТУРА ====================
+
+\begin{frame}
+\frametitle{Структура skill: это просто папка}
+
+\textbf{Базовая структура:}
+
+\vspace{0.3cm}
+
+\begin{itemize}
+    \item \texttt{telegram-post-writer/}
+    \begin{itemize}
+        \item \texttt{SKILL.md} — главный файл с правилами
+        \item \texttt{instructions.md} — детальные инструкции (опционально)
+        \item \texttt{examples/} — примеры входов и выходов (опционально)
+        \item \texttt{scripts/} — Python/bash для автоматизации (опционально)
+    \end{itemize}
+\end{itemize}
+
+\vspace{0.5cm}
+
+\begin{block}{SKILL.md — минимальная структура}
+\begin{itemize}
+    \item \texttt{name:} название skill
+    \item \texttt{description:} что делает
+    \item Цель, правила, стоп-слова, формат выхода
+\end{itemize}
+\end{block}
+
+\end{frame}
+
+% ==================== СЛАЙД 4: ПРИМЕР ====================
+
+\begin{frame}
+\frametitle{Лучший пример для нетехнических людей: Email Response}
+
+\begin{block}{Задача}
+Отвечать на письма клиентов в едином стиле: вежливо, коротко, по делу
+\end{block}
+
+\vspace{0.3cm}
+
+\textbf{Было (без skill):}
+
+Каждый раз объясняешь: «Будь вежлив, но не формален. Используй имя клиента. Сначала извинись, потом решение, потом предложи помощь»
+
+\vspace{0.5cm}
+
+\textbf{Стало (с skill):}
+
+Создал skill «customer-support-email» один раз. Теперь просто пишешь: «Ответь на это письмо», и Claude сам применяет все правила:
+
+\begin{itemize}
+    \item Обращается по имени
+    \item Признаёт проблему клиента
+    \item Даёт конкретное решение за 2-3 предложения
+    \item Предлагает дополнительную помощь
+    \item Подписывается твоим именем
+\end{itemize}
+
+\end{frame}
+
+% ==================== СЛАЙД 5: АВТОМАТИЗМ ====================
+
+\begin{frame}
+\frametitle{Почему это не просто папка с файлами}
+
+\textbf{Два ключевых отличия:}
+
+\vspace{0.5cm}
+
+\textbf{1. Готовые skills можно скачать}
+
+Есть хабы (agentskills.io, agentskillshub.dev), где тысячи готовых skills под разные задачи. Не нужно писать с нуля — берёшь готовый и адаптируешь.
+
+\vspace{0.5cm}
+
+\textbf{2. Агенты сами понимают, когда использовать skill}
+
+Это уже заложено в многих агентах (Claude Code, Claude Desktop). Ты просто пишешь запрос, агент анализирует контекст и автоматически подгружает нужный skill без явной команды.
+
+\vspace{0.5cm}
+
+\begin{alertblock}{Главное}
+Skill = стандартизированный формат, который понимают разные агенты
+\end{alertblock}
+
+\end{frame}
+
+% ==================== СЛАЙД 6: ДЕПЛОЙ ПРИМЕР ====================
+
+\begin{frame}
+\frametitle{Практический пример: деплой на сервер}
+
+\textbf{Структура deploy-skill:}
+
+\vspace{0.3cm}
+
+\begin{itemize}
+    \item \texttt{deploy-skill/}
+    \begin{itemize}
+        \item \texttt{SKILL.md} — описание процесса деплоя
+        \item \texttt{scripts/deploy.sh} — rsync + restart service
+        \item \texttt{scripts/backup.sh} — автобэкап перед деплоем
+        \item \texttt{scripts/rollback.sh} — откат при ошибке
+        \item \texttt{examples/nginx.conf} — шаблон конфига
+    \end{itemize}
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Запрос:} «Задеплой проект на прод»
+
+\textbf{Claude автоматически:}
+\begin{itemize}
+    \item Создаёт бэкап текущей версии
+    \item Загружает новую версию через rsync
+    \item Перезапускает сервис и проверяет статус
+\end{itemize}
+
+\end{frame}
+
+% ==================== СЛАЙД 7: ХАБЫ ====================
+
+\begin{frame}
+\frametitle{Где найти готовые skills}
+
+\begin{block}{Основные хабы}
+\begin{itemize}
+    \item \textbf{agentskills.io} — официальный стандарт и каталог
+    \item \textbf{agentskillshub.dev} — проверенные skills с security-сканированием
+    \item \textbf{claude.ai} — встроенный каталог (Pro/Max/Team/Enterprise)
+    \item \textbf{GitHub} — community-репозитории
+\end{itemize}
+\end{block}
+
+\vspace{0.3cm}
+
+\textbf{Примеры skills из хабов:}
+\begin{itemize}
+    \item \textbf{Notion integration} — экспорт задач и заметок
+    \item \textbf{Code review assistant} — анализ PR по стандартам команды
+    \item \textbf{SEO content generator} — статьи с ключевыми словами
+    \item \textbf{Expense audit} — проверка счетов и синхронизация с QuickBooks
+\end{itemize}
+
+\end{frame}
+
+% ==================== СЛАЙД 8: ОПАСНОСТЬ ====================
+
+\begin{frame}
+\frametitle{Опасность: Prompt Injection}
+
+\begin{alertblock}{Реальная атака: «What Would Elon Do?»}
+Skill из топ-1 OpenClaw репозитория оказался \textbf{вредоносным}
+\end{alertblock}
+
+\vspace{0.3cm}
+
+\textbf{Что делал skill:}
+\begin{itemize}
+    \item Exfiltration данных на сервер атакующего через \texttt{curl}
+    \item Prompt injection для обхода safety guidelines
+    \item Выполнение команд без подтверждения пользователя
+\end{itemize}
+
+\vspace{0.3cm}
+
+\begin{alertblock}{Ключевая проблема}
+Skill исполняется с \textbf{теми же правами, что и сам агент}. \\
+Команды агента \textbf{по-сути никто не читает} перед разрешением.
+\end{alertblock}
+
+\vspace{0.3cm}
+
+\textbf{Источники:} 
+\small{\url{https://www.authmind.com/post/openclaw-malicious-skills-agentic-ai-supply-chain}}
+
+
+\end{frame}
+
+% ==================== СЛАЙД 9: ВЫВОДЫ ====================
+
+\begin{frame}
+\frametitle{Ключевые выводы}
+
+\begin{enumerate}
+    \item \textbf{Проблема решена} — Skills избавляют от повторных объяснений
+    
+    \item \textbf{Автоматизм} — Claude сам выбирает и применяет skills
+    
+    \item \textbf{Практичность} — от контента до деплоя, реальные кейсы
+    
+    \item \textbf{Опасность} — prompt injection и malware в community-skills
+    
+    \item \textbf{Критичная проблема безопасности} — skill выполняется с правами агента, команды не проверяются пользователем
+\end{enumerate}
+
+\vspace{0.5cm}
+
+\begin{block}{Источники}
+\begin{itemize}
+    \item Habr: \url{https://habr.com/ru/articles/993174/}
+    \item Роадмап: \url{https://t.me/NeuralProfit/2143}
+    \item Хабы: \url{https://agentskills.io}, \url{https://agentskillshub.dev}
+\end{itemize}
+\end{block}
+
+\end{frame}
+
+\end{document}

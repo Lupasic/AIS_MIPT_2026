@@ -276,4 +276,7 @@ TSWLatexianTemp*
 ehthumbs.db
 Thumbs.db
 
+*./solutions/*.
+quizzes/*
+
 .vscode/
