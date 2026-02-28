@@ -24,6 +24,13 @@ All class related material can be found in corresponding folder <<input_data>>
 * [HW 2 (Intro to ROS2: Concepts, Architecture, Tools)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/02/AIS_hw02.pdf) 
 * [HW 3 (Data preprocessing, ROS2)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/03/AIS_hw03.pdf) 
 
+# Instruction for Github Classroom
+1. Send your full name, photo, and Git username to the PI.
+2. Go to the link from the PI and choose your full name from the list. If it is not there, wait until it appears.
+3. Accept the particular HW assignment; you will get an <<Access issue>> error.
+4. Open the email address associated with your Git account and accept the repository invitation (this should be done for each HW).
+5. ...
+6. Profit
 
 # For contributors
 
