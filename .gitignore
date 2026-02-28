@@ -276,7 +276,8 @@ TSWLatexianTemp*
 ehthumbs.db
 Thumbs.db
 
-*./solutions/*.
-quizzes/*
+# Ignore solutions directories everywhere
+solutions/
+quizzes/
 
 .vscode/
