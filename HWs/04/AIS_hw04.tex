@@ -1,0 +1,272 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, HW 4} %% that will be typeset on the
+\subtitle{Data versioning by ClearML, Labeling tools  
+\\ \  \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+% \usepackage{subfigure}
+\usepackage{floatrow}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+% \usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}[numbered]
+\usetikzlibrary{graphs}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+\begin{frame}[t]{Goal of the Assignment}
+\vspace*{-0.5cm}
+
+\textbf{Short description:} The task is to learn the full pipeline of preparing
+datasets for computer vision tasks.
+
+\begin{itemize}
+\item Choose either detection or segmentation problem.
+\item Find and analyze a public dataset.
+\item Collect own image data.
+\item Annotate images.
+\item Add collected and public datasets to ClearML.
+\item Merge datasets.
+\item Split dataset into train/val/test.
+\item Export the dataset in a format compatible with YOLO models
+\end{itemize}
+
+The final result should be a structured dataset suitable for training
+a neural network.
+
+\end{frame}
+
+\begin{frame}[t]{Technology Stack}
+
+The following tools should be used during the assignment.
+
+\textbf{Dataset management}
+
+\begin{itemize}
+\item ClearML Dataset
+\end{itemize}
+
+\textbf{Annotation tools}
+
+\begin{itemize}
+\item CVAT
+\item Roboflow
+\item Supervisely
+\end{itemize}
+
+\textbf{Pre-annotation}
+
+\begin{itemize}
+\item Segment Anything Model (SAM) or others
+\end{itemize}
+
+You may use either local installations or cloud versions of these tools.
+
+\end{frame}
+
+\begin{frame}[t]{Task Selection}
+
+Tasks are listed in order of increasing complexity:
+
+\begin{enumerate}
+\item Object Detection
+\item Image Segmentation
+\end{enumerate}
+
+Annotation type depends on the selected task:
+
+\begin{itemize}
+\item Detection — bounding boxes
+\item Segmentation — masks or polygons
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[t]{Step 1: Public Dataset}
+\vspace*{-0.5cm}
+Find a publicly available dataset related to your selected task.
+
+\begin{itemize}
+\item Kaggle
+\item Hugging Face Datasets
+\item PapersWithCode
+\item Roboflow Universe
+\item Supervisely Datasets
+\end{itemize}
+
+In your report include:
+
+\begin{itemize}
+\item dataset name with the source link
+\item short description
+\item number of images
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[t]{Step 2: Collect Your Own Images}
+\vspace*{-0.5cm}
+You must collect your own dataset. The goal is to build a realistic and diverse dataset.
+
+Requirements:
+
+\begin{itemize}
+\item at least 100 images
+\item images must be taken by you
+\item dataset must contain variation
+\end{itemize}
+
+Ensure diversity in:
+
+\begin{itemize}
+\item camera angles
+\item lighting conditions
+\item backgrounds
+\item scene composition
+\end{itemize}
+
+
+
+\end{frame}
+
+\begin{frame}[t]{Step 3: Image Annotation}
+\vspace*{-0.5cm}
+All collected images must be annotated.
+
+Choose an annotation tool:
+
+\begin{itemize}
+\item CVAT
+\item Roboflow
+\item Supervisely
+\end{itemize}
+
+Annotation type depends on the selected task:
+
+\begin{itemize}
+\item Detection — bounding boxes
+\item Segmentation — masks or polygons
+\end{itemize}
+
+Ensure consistent annotation across all images.
+
+\end{frame}
+
+
+\begin{frame}[t, fragile]{Step 4: Create ClearML Dataset}
+\vspace*{-0.5cm}
+
+Create a ClearML Dataset for both the public and collected datasets. And fuse them together.
+
+To sum up you should have three datasets in ClearML.
+\end{frame}
+
+\begin{frame}[t]{Step 5: Dataset Split}
+
+Split the dataset into three parts:
+
+\begin{itemize}
+\item training set
+\item validation set
+\item test set
+\end{itemize}
+
+Recommended split:
+
+\begin{itemize}
+\item 70\% training
+\item 20\% validation
+\item 10\% testing
+\end{itemize}
+
+Ensure that all subsets contain representative samples.
+\end{frame}
+
+
+
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}

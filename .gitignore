@@ -281,3 +281,5 @@ solutions/
 quizzes/
 
 .vscode/
+.agents/
+.playwright/
