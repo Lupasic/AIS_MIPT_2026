@@ -1,0 +1,308 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, Project 1} %% that will be typeset on the
+\subtitle{Fine-tuning YOLO models on custom datasets  
+\\ \  \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+% \usepackage{subfigure}
+\usepackage{floatrow}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+% \usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}[numbered]
+\usetikzlibrary{graphs}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+\begin{frame}[t]{Short Description}
+The goal of this assignment is fine-tuning a pretrained \textbf{Ultralytics YOLO model} on a custom dataset for a computer vision task of your choice. It's important to implement a \textbf{methodologically correct ML workflow}.
+The workflow must include:
+\begin{multicols}{2}
+    \begin{itemize}
+        \item dataset collection
+\item dataset annotation
+\item dataset versioning
+\item experiment tracking
+\item model training and improvement
+\item deployment and demonstration
+    \end{itemize}
+
+You must use:
+\begin{itemize}
+\item \textbf{Ultralytics YOLO}
+\item \textbf{ClearML} for dataset versioning and experiment tracking
+\end{itemize}
+\end{multicols}
+
+\end{frame}
+
+
+\begin{frame}[t]{1. Task Selection}
+    \vspace*{-0.4cm}
+Choose a computer vision task that can be demonstrated using:
+
+\begin{itemize}
+\item a \textbf{phone camera}, or
+\item a \textbf{webcam on your computer}
+\end{itemize}
+
+Students choose the task themselves.
+
+Possible task types:
+\begin{itemize}
+\item object detection
+\item instance segmentation
+\item image classification
+\end{itemize}
+
+Important requirement:
+
+The object or class must be \textbf{physically accessible}, since you will
+collect and annotate your own data.
+\end{frame}
+
+
+\begin{frame}[t]{2. Dataset Preparation}
+    \vspace*{-0.4cm}
+You must use both:
+\begin{multicols}{2}
+\begin{itemize}
+\item an \textbf{open dataset}
+\item a \textbf{self-collected dataset}
+\end{itemize}
+
+Possible sources of open datasets:
+\begin{itemize}
+\item Kaggle
+\item Roboflow Universe
+\item Hugging Face Datasets
+\item other public datasets
+\end{itemize}
+
+Your own dataset must contain:
+
+\begin{itemize}
+\item \textbf{100--300 images minimum}
+\item different lighting conditions
+\item different backgrounds
+\item different object poses and viewpoints
+\end{itemize}
+\end{multicols}
+
+\end{frame}
+
+
+\begin{frame}[t]{3. Data Annotation and Versioning}
+All collected images must be \textbf{annotated}.
+
+Possible annotation tools:
+\begin{itemize}
+\item CVAT
+\item Roboflow
+\end{itemize}
+
+Annotations must be exported in \textbf{Ultralytics YOLO format}.
+
+Datasets must be \textbf{versioned using ClearML}.
+
+You must create at least:
+\begin{itemize}
+\item one \textbf{initial dataset version}
+\item one \textbf{improved dataset version} (after additional data collection or re-annotation)
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[t]{4. Baseline Model}
+Train a \textbf{baseline model} by fine-tuning a pretrained
+\textbf{Ultralytics YOLO model}.
+
+Students may choose the model architecture depending on the task.
+
+Examples:
+\begin{itemize}
+\item smaller models for faster inference
+\item larger models if computational resources allow
+\end{itemize}
+
+All training runs must be \textbf{logged in ClearML}.
+\end{frame}
+
+
+\begin{frame}[t]{5. Evaluation Metrics}
+Use the \href{https://docs.ultralytics.com/metrics/}{standard Ultralytics evaluation metrics}
+
+\begin{itemize}
+\item Precision
+\item Recall
+\item mAP
+\item F1 score
+\item Confusion Matrix
+\end{itemize}
+
+Metrics must be tracked through \textbf{ClearML experiments}.
+\end{frame}
+
+
+\begin{frame}[t]{6. Experiments and Improvements}
+You must run at least \textbf{three experiments} aimed at improving the model.
+\begin{multicols}{2}
+Possible approaches:
+
+\begin{itemize}
+\item hyperparameter tuning
+\item data augmentation
+\item adding more training data
+\item fixing annotation errors
+\item balancing classes
+\item trying different YOLO model sizes
+\end{itemize}
+
+Each experiment must be:
+\begin{itemize}
+\item logged in \textbf{ClearML}
+\item reproducible
+\end{itemize}
+\end{multicols}
+
+\end{frame}
+
+
+\begin{frame}[t]{7. Training Resources}
+This assignment \textbf{can be completed on a CPU-only computer}.
+
+Using additional resources is allowed but not required:
+
+\begin{itemize}
+\item GPU
+\item Google Colab
+\item remote servers
+\end{itemize}
+
+Since you are performing \textbf{fine-tuning}, training on CPU is feasible.
+\end{frame}
+
+
+\begin{frame}[t]{8. Deployment and Demonstration}
+Export the trained model using \textbf{Ultralytics}.
+
+Demonstrate the solution in real time using:
+
+\begin{itemize}
+\item a \textbf{webcam}, or
+\item a \textbf{phone camera}
+\end{itemize}
+
+The system must show \textbf{live inference} detecting the selected objects.
+\end{frame}
+
+
+\begin{frame}[t]{Submission}
+You must submit a \textbf{report} describing the full workflow.
+
+The report must include:
+\begin{multicols}{2}
+\begin{itemize}
+\item description of the selected task
+\item links to \textbf{ClearML project and experiments}
+\item dataset sources and dataset versions
+\item description of experiments
+\item evaluation metrics
+\item description of improvements
+\item demonstration of the final system (video or live demo)
+\item discussion of \textbf{difficulties and limitations}
+\end{itemize}
+\end{multicols}
+
+
+The goal is to document the \textbf{entire ML workflow}.
+\end{frame}
+
+
+
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}
