@@ -1,0 +1,329 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, Project 2} %% that will be typeset on the
+\subtitle{Inference in the Loop: AI-Driven Robot Control with ROS2
+\\ \  \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+% \usepackage{subfigure}
+\usepackage{floatrow}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+% \usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}[numbered]
+\usetikzlibrary{graphs}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+\begin{frame}[t]{Short Description}
+    \vspace*{-0.5cm}
+The goal of this project is to build an \textbf{AI-driven robot control system} by integrating a trained ML model with a ROS2 pipeline using \textbf{ONNX} as the inference format.
+
+The full pipeline:
+\begin{multicols}{2}
+\begin{enumerate}
+    \item Define an AI task and a robot action mapping
+    \item Train or fine-tune a model
+    \item Export the model to \textbf{ONNX}
+    \item Deploy inference inside a \textbf{ROS2 node}
+    \item Control a robot via ROS topics based on model output.
+    \item Monitor live inference in a \textbf{Gradio} panel
+    \item Demonstrate in \textbf{Gazebo} or on a real robot
+\end{enumerate}
+Students are free to choose any modalities like: CV, audio, NLP, etc.
+\end{multicols}
+Reusing a model from \textbf{Project~1} is encouraged but not required.
+\end{frame}
+
+
+\begin{frame}[t]{Example Project}
+\framesubtitle{Gesture-Controlled Differential-Drive Robot}
+\vspace{-0.3cm}
+A YOLO classification model recognize \textbf{hand gestures} from a webcam.
+Each gesture class is mapped to a robot motion command:
+        
+\textbf{Gesture classes (example):}
+        \begin{itemize}
+            \item \texttt{forward} $\to$ move forward
+            \item \texttt{backward} $\to$ move backward
+            \item \texttt{turn\_left} $\to$ rotate left
+            \item \texttt{turn\_right} $\to$ rotate right
+            \item \texttt{stop} $\to$ zero velocity
+        \end{itemize}
+\vspace{0.2cm}
+The robot publishes velocity commands to \texttt{/cmd\_vel}.
+A \textbf{Gradio} panel displays the live predicted class and confidence score.
+\end{frame}
+
+
+\begin{frame}[t]{Step 1}
+\vspace{-0.3cm}
+\textbf{Short description}: Define the AI task your system will solve and specify how the model output maps to robot actions.
+
+\textbf{Artifacts}: Report section describing the task design.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item Describe the input modality (camera, microphone, etc.)
+    \item Specify the model output: class labels, bounding boxes, regression values, etc.
+    \item Define the complete \textbf{class-to-action mapping}\\
+          (e.g.\ class \texttt{forward} $\to$ \texttt{linear.x = 0.3})
+    \item Justify why the chosen task is suitable for robot control
+    \item The system must support at least \textbf{3 distinct robot actions}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Step 2}
+\vspace{-0.3cm}
+\textbf{Short description}: Obtain a trained AI model that produces the outputs defined in Step~1 and is exportable to ONNX.
+
+\textbf{Artifacts}: Model checkpoint (or downloaded weights), evaluation results, report section.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item Use any ONNX-exportable framework (Ultralytics YOLO, PyTorch, HuggingFace, etc.)
+    \item \textbf{Fine-tuning is not required} --- you may use a pre-trained model directly if it already solves your task
+    \item If the available pre-trained models do not fit, fine-tune on a suitable dataset
+    \item Evaluate the chosen model with appropriate metrics (accuracy, mAP, F1, etc.)
+    \item Describe the model selection or training process in the report
+    \item ClearML experiment tracking is \textbf{recommended} if training is performed
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Step 3}
+\vspace{-0.3cm}
+\textbf{Short description}: Export the trained model to ONNX format and validate that inference produces results consistent with the original framework.
+
+\textbf{Artifacts}: \texttt{.onnx} model file, validation script, report section with comparison results.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item Export the model to ONNX using the framework's export API
+    \item Document: input/output tensor names and shapes, opset version, dynamic axes if used
+    \item Run a validation script: pass the same input through both the original model and \texttt{onnxruntime}
+    \item Verify outputs match within floating-point tolerance
+    \item Measure and report inference latency for the ONNX model on your hardware
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Step 4}
+\vspace{-0.4cm}
+\textbf{Short description}: Design and document the ROS2 system architecture for your project.
+
+\textbf{Artifacts}: Architecture description in the report with all node and topic names defined.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item You choose how inference integrates with ROS2:
+    \begin{itemize}\footnotesize
+        \item \textbf{Outside ROS2} --- a standalone script reads the sensor directly and publishes the result to a ROS2 topic
+        \item \textbf{Inside ROS2} --- a dedicated ROS2 node subscribes to a sensor topic, runs ONNX, and publishes the result
+    \end{itemize}
+Either way, the ROS2 side must include at minimum: a \textbf{result topic} carrying the model output (e.g.\ \texttt{/model\_result}); a \textbf{controller node} that subscribes to the result and commands the robot
+    \item List all ROS2 topics: name, message type, publisher, subscriber
+    \item Justify your integration choice in the report
+    \item Describe the complete data flow: sensor $\to$ inference $\to$ ROS2 topic $\to$ robot actuator
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Step 5}
+\vspace{-0.3cm}
+\textbf{Short description}: Implement the inference component that runs the ONNX model and publishes the result to a ROS2 topic.
+
+\textbf{Artifacts}: Inference script or ROS2 node source code.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item Implement according to the architecture chosen in Step~4:
+    \begin{itemize}\footnotesize
+        \item \textbf{Outside ROS2}: a Python script reads sensor data directly (e.g.\ via OpenCV, PyAudio), runs ONNX inference, and publishes to \texttt{/model\_result} via \texttt{rclpy}
+        \item \textbf{Inside ROS2}: a ROS2 node subscribes to a sensor topic, runs ONNX inference, and publishes to \texttt{/model\_result}
+    \end{itemize}
+    \item Load the ONNX model using \texttt{onnxruntime} at startup
+    \item Preprocess input data to match the model's expected input shape
+    \item Published message must contain: predicted class name and confidence score
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Step 6}
+\vspace{-0.3cm}
+\textbf{Short description}: Implement a ROS2 controller node that subscribes to the model result and commands the robot accordingly.
+
+\textbf{Artifacts}: ROS2 package containing the controller node source code.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item Subscribe to \texttt{/model\_result} published by the inference script
+    \item Map each predicted class or value to an appropriate ROS2 command message.\\
+          The command type depends on the robot:
+    \begin{itemize}\footnotesize
+        \item mobile robot: \texttt{geometry\_msgs/Twist} on \texttt{/cmd\_vel}
+        \item manipulator: \texttt{trajectory\_msgs/JointTrajectory}
+        \item custom actuator: any suitable message type
+    \end{itemize}
+    \item All action-to-command mappings must be explicitly defined and documented
+    \item Include a configurable \textbf{confidence threshold} --- send a safe/neutral command if confidence is below it
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Step 7}
+\vspace{-0.3cm}
+\textbf{Short description}: Build a Gradio application that subscribes to the inference result topic and displays a live monitoring panel.
+
+\textbf{Artifacts}: Python source code for the Gradio monitoring app.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item The panel must display in real time:
+    \begin{itemize}\footnotesize
+        \item current predicted class label
+        \item confidence score
+        \item optionally: the latest input frame
+    \end{itemize}
+    \item Subscribe to \texttt{/model\_result} via \texttt{rclpy} or a shared queue
+    \item Use appropriate Gradio components (\texttt{gr.Label}, \texttt{gr.Image}, etc.)
+    \item The panel must update continuously without manual refresh
+    \item The app runs as a \textbf{separate process} alongside the ROS2 nodes
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Step 8}
+\vspace{-0.3cm}
+\textbf{Short description}: Demonstrate the complete integrated system with the robot responding to live model inference while the Gradio panel monitors inference output.
+
+\textbf{Artifacts}: Recorded demo video; report section describing the demo setup.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item All components must run simultaneously and be visible in the recording:
+    \begin{itemize}\footnotesize
+        \item live sensor input
+        \item robot reacting in \textbf{Gazebo simulation} or on a \textbf{real robot}
+        \item \textbf{Gradio panel} updating in real time
+    \end{itemize}
+    \item The video must demonstrate at least \textbf{3 distinct robot actions} triggered by model output
+    \item Describe the simulation world or real robot setup in the report
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[t]{Submission}
+You must submit a \textbf{report} and a working code repository covering the full pipeline.
+\vspace*{-0.3cm}
+\begin{multicols}{2}
+The report must include:
+\begin{itemize}
+    \item task design and action mapping (Step~1)
+    \item model training process and results (Step~2)
+    \item ONNX export settings and validation (Step~3)
+    \item ROS2 architecture description (Step~4)
+    \item description of all implemented nodes (Steps~5--6)
+    \item Gradio panel description and screenshots (Step~7)
+    \item demo setup and observations (Step~8)
+    \item discussion of difficulties and limitations
+\end{itemize}
+Required artifacts:
+\begin{itemize}
+    \item Git repository with all source code
+    \item trained \texttt{.onnx} model file
+    \item demo video (robot + Gradio panel)
+    \item PDF report
+\end{itemize}
+\end{multicols}
+\end{frame}
+
+
+
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}

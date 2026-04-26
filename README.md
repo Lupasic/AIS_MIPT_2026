@@ -9,6 +9,7 @@ All class related material can be found in corresponding folder <<input_data>>
 
 # Projects
 * [Project 1 (Fine-tuning YOLO models on custom datasets)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/projects/01/AIS_pr01.pdf)
+* [Project 2 (Inference in the Loop: AI-Driven Robot Control with ROS2)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/projects/02/AIS_pr02.pdf)
 
 # Lecture slides
 * [Lecture 1 (Introduction; Intro to MLOps)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/01/AIS_lec01.pdf)

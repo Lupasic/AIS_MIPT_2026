@@ -290,3 +290,4 @@ quizzes/
 *runs
 *.pt
 *data
+.github/
