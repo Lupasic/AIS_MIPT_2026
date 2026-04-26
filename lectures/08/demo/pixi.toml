@@ -1,0 +1,65 @@
+[workspace]
+authors = ["Lupasic <obulichev@yandex.ru>"]
+channels = ["conda-forge"]
+name = "demo"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.10.*"
+
+# YOLO
+ultralytics = "8.2.*"
+
+
+# Logging / tracking
+clearml = "1.16.*"
+tensorboard = "2.14.*"
+
+# HPO
+optuna = "3.6.*"
+# Core deps (safe versions)
+numpy = "1.26.*"
+matplotlib = "3.8.*"
+pillow = "10.*"
+pyyaml = "*"
+
+# Notebook (optional but useful)
+notebook = "7.*"
+ipywidgets = "8.*"
+torchvision = ">=0.25.0,<0.26"
+cmaes = ">=0.13.0,<0.14"
+scipy = ">=1.15.2,<2"
+optunahub = ">=0.4.0,<0.5"
+setuptools = "<81"
+
+
+[pypi-dependencies]
+optuna-integration = {extras = ["tensorboard"] }
+roboflow = "*"
+dotenv = "*"
+# -------------------------
+# GPU support
+# -------------------------
+[feature.gpu.system-requirements]
+cuda = "12.0"
+
+[feature.gpu.dependencies]
+cuda-version = "12.*"
+pytorch-gpu = "*"
+
+# -------------------------
+# CPU support
+# -------------------------
+[feature.cpu.dependencies]
+pytorch-cpu = "*"
+
+
+# -------------------------
+# Environments
+# -------------------------
+[environments]
+default = ["gpu"]
+cpu = ["cpu"]

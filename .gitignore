@@ -284,3 +284,9 @@ quizzes/
 .agents/
 .playwright/
 
+.vscode/
+.agents/
+.playwright/
+*runs
+*.pt
+*data

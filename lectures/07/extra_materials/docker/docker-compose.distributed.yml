@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  torch-node:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace
+    environment:
+      MASTER_ADDR: torch-node-1
+      MASTER_PORT: 29500
+      WORLD_SIZE: ${WORLD_SIZE:-2}
+      NPROC_PER_NODE: 1
+    command: ["bash", "-lc", "python scripts/torch_ddp_cpu_demo.py"]
+
+  ray-head:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace
+    ports:
+      - "8265:8265"
+      - "6379:6379"
+    command:
+      [
+        "bash",
+        "-lc",
+        "ray start --head --port=6379 --dashboard-host=0.0.0.0 && tail -f /dev/null"
+      ]
+
+  ray-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace
+    depends_on:
+      - ray-head
+    command:
+      [
+        "bash",
+        "-lc",
+        "ray start --address=ray-head:6379 && tail -f /dev/null"
+      ]

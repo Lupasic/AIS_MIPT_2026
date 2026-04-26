@@ -1,0 +1,409 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, Lecture 7} %% that will be typeset on the
+\subtitle{Training process
+\\ \ \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+\usepackage{subfigure}
+% \usepackage{floatrow}
+% \usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+\usetikzlibrary{graphs}
+\usetikzlibrary{positioning,arrows.meta}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\newcommand{\imgmock}[2]{
+\fbox{\parbox[c][0.48\textheight][c]{0.92\linewidth}{\centering\textbf{Mock image placeholder}\\[2mm]#1\\[2mm]\footnotesize #2}}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+
+\begin{frame}[t]{Training as a Pipeline}
+Training a neural network is a production pipeline, not one monolithic algorithm.
+\vspace{1mm}
+\begin{itemize}
+    \item Input stage: data loading, filtering, augmentation, batching.
+    \item Compute stage: forward pass, loss computation, backward pass, optimizer step.
+    \item Control stage: validation, checkpointing, logging, early stopping.
+    \item Ops stage: experiment tracking, distributed execution, model registry.
+\end{itemize}
+\vspace{1mm}
+Your work is to design and control this system, not to re-implement autograd.
+\end{frame}
+
+\begin{frame}{Pipeline Scheme}
+\centering
+\begin{tikzpicture}[
+    stage/.style={draw, rounded corners, align=center, minimum width=2.0cm, minimum height=0.95cm, fill=blue!8},
+    arrow/.style={-{Latex[length=2.5mm]}, thick}
+]
+\node[stage] (d) {Dataset\\+ transforms};
+\node[stage, right=0.8cm of d] (l) {DataLoader\\(batches)};
+\node[stage, right=0.8cm of l] (f) {Forward\\pass};
+\node[stage, right=0.8cm of f] (loss) {Loss};
+\node[stage, right=0.8cm of loss] (b) {Backward\\+ optimizer};
+
+\draw[arrow] (d) -- (l);
+\draw[arrow] (l) -- (f);
+\draw[arrow] (f) -- (loss);
+\draw[arrow] (loss) -- (b);
+\draw[arrow, bend left=-20] (b.north) to node[above, font=\scriptsize] {next batch} (l.north);
+
+\node[draw, rounded corners, fill=green!10, below=0.95cm of f, minimum width=3.0cm, minimum height=0.8cm] (val) {Valid. loop};
+\node[draw, rounded corners, fill=yellow!15, below=0.95cm of loss, minimum width=3.0cm, minimum height=0.8cm] (track) {Tracking + checkpoints};
+\draw[arrow] (f.south) -- (val.north);
+\draw[arrow] (loss.south) -- (track.north);
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}[t]{Key Idea: Build on Existing Models}
+In practical ML, we rarely train foundation models from scratch.
+\vspace{1mm}
+\begin{itemize}
+    \item Start with pretrained encoders/LLMs/vision backbones.
+    \item Adapt with fine-tuning, adapters, or LoRA-style parameter-efficient methods.
+    \item Keep a consistent pipeline: same data contracts, metrics, and deployment checks.
+\end{itemize}
+\vspace{1mm}
+Engineering maturity comes from reproducibility and iteration speed.
+\end{frame}
+
+\begin{frame}[t]{Fine-Tuning Strategies}
+\begin{itemize}
+    \item \textbf{Full fine-tuning:} best quality ceiling, highest memory/compute cost.
+    \item \textbf{Partial unfreezing:} train only top layers for faster adaptation.
+    \item \textbf{PEFT (LoRA/adapters):} small trainable modules, cheap and scalable.
+\end{itemize}
+\vspace{1mm}
+Typical workflow:
+\begin{enumerate}
+    \item Freeze most layers.
+    \item Train head or adapters.
+    \item Unfreeze gradually if validation metric plateaus.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[t]{Data and Dataset Quality}
+Dataset quality determines your quality ceiling.
+\vspace{1mm}
+\begin{itemize}
+    \item Remove duplicates and label leakage between train/validation/test.
+    \item Control class imbalance and long-tail behavior.
+    \item Keep metadata for slicing metrics (domain, source, language, device).
+    \item Version data exactly as you version code.
+\end{itemize}
+\vspace{1mm}
+Bad labels are often a bigger bottleneck than model architecture.
+\end{frame}
+
+\begin{frame}[t]{DataLoader Design Decisions}
+DataLoader converts storage format into GPU-ready batches.
+\vspace{1mm}
+\begin{itemize}
+    \item Throughput: prefetch, pinned memory, parallel workers.
+    \item Stochasticity: shuffling and sampling strategy.
+    \item Consistency: deterministic seeds for reproducible debugging.
+    \item Efficiency: dynamic padding or bucketing for variable-length inputs.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Batching and Effective Batch Size}
+\begin{itemize}
+    \item Physical batch size is limited by GPU memory.
+    \item Effective batch size can be increased via gradient accumulation.
+    \item Very large batches may require learning-rate scaling and warmup.
+\end{itemize}
+\vspace{1mm}
+\[
+\text{effective batch} = \text{batch per device} \times \text{num devices} \times \text{accumulation steps}
+\]
+\end{frame}
+
+\begin{frame}[t]{Forward Pass and Loss}
+\begin{itemize}
+    \item Forward pass transforms batch input into logits or token probabilities.
+    \item Loss encodes the optimization objective (cross-entropy, MSE, contrastive, etc.).
+    \item Metrics are not always losses: optimize one thing, report several.
+\end{itemize}
+\vspace{1mm}
+A common anti-pattern is optimizing a proxy loss that does not match business KPI.
+\end{frame}
+
+\begin{frame}[t]{Backward Pass and Optimization}
+\begin{itemize}
+    \item Autograd computes gradients automatically from loss to parameters.
+    \item Optimizers (AdamW, SGD) update weights using gradients.
+    \item Schedulers adjust learning rate over time (warmup, cosine decay, step decay).
+    \item Mixed precision speeds training and reduces memory footprint.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Validation and Error Analysis}
+Validation should answer: \textit{is the model good enough for deployment?}
+\vspace{1mm}
+\begin{itemize}
+    \item Track both aggregate metrics and slices (rare classes, edge domains).
+    \item Compare calibration, confidence, and failure modes.
+    \item Keep a fixed benchmark subset for stable trend monitoring.
+\end{itemize}
+\vspace{1mm}
+Training loss without structured error analysis is misleading.
+\end{frame}
+
+\begin{frame}[t]{Experiment Tracking and Reproducibility}
+\begin{itemize}
+    \item Log config, git revision, dataset version, metrics, artifacts.
+    \item Save checkpoints and best model according to validation target.
+    \item Use systems such as ClearML/MLflow/W\&B to compare runs.
+\end{itemize}
+\vspace{1mm}
+Reproducibility means you can recreate the same run months later.
+\end{frame}
+
+\begin{frame}[t]{Hyperparameters That Matter Most}
+\begin{tabular}{@{}p{3.2cm}p{8.0cm}@{}}
+\toprule
+Group & Examples and effect \\
+\midrule
+Optimization & Learning rate, weight decay, optimizer type; strongest impact on convergence \\
+Batching & Batch size, accumulation steps; trade-off between stability and speed \\
+Regularization & Dropout, label smoothing, augmentation; controls overfitting \\
+Schedule & Warmup ratio, max epochs, early stopping; affects final generalization \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}[t]{Why Ray for Training Workloads}
+Ray is a distributed execution framework for Python workloads.
+\vspace{1mm}
+\begin{itemize}
+    \item Scale one script from laptop to cluster with minimal code changes.
+    \item Ray Train: distributed model training (data parallel and fault-tolerant loops).
+    \item Ray Tune: large-scale hyperparameter search and scheduler-based pruning.
+    \item Ray Data: scalable data ingestion and preprocessing pipeline.
+\end{itemize}
+\vspace{1mm}
+Ray is useful when experiments outgrow a single machine.
+\end{frame}
+
+\begin{frame}[t]{Ray in the Training Stack}
+\centering
+\begin{tikzpicture}[
+    box/.style={draw, rounded corners, align=center, minimum width=3.4cm, minimum height=0.95cm, fill=orange!12},
+    arr/.style={-{Latex[length=2.5mm]}, thick}
+]
+\node[box] (user) {Training script\\(PyTorch/Lightning)};
+\node[box, below=0.7cm of user] (train) {Ray Train\\distributed workers};
+\node[box, left=1.2cm of train] (data) {Ray Data\\input pipeline};
+\node[box, right=1.2cm of train] (tune) {Ray Tune\\HPO + schedulers};
+\node[box, below=0.7cm of train, minimum width=5.2cm] (cluster) {Ray Cluster\\head node + worker nodes + autoscaling};
+
+\draw[arr] (user) -- (train);
+\draw[arr] (data) -- (train);
+\draw[arr] (tune) -- (train);
+\draw[arr] (train) -- (cluster);
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}[t]{Ray Concepts to Remember}
+\begin{itemize}
+    \item \textbf{Tasks:} parallel stateless functions.
+    \item \textbf{Actors:} stateful workers for long-lived services.
+    \item \textbf{Object Store:} shared-memory transport for large tensors and batches.
+    \item \textbf{Schedulers:} resource-aware placement (CPU/GPU/custom resources).
+\end{itemize}
+\vspace{1mm}
+These abstractions let you scale preprocessing, training, and HPO consistently.
+\end{frame}
+
+\begin{frame}[t]{Ray Tune for Hyperparameter Search}
+\begin{itemize}
+    \item Define search space (learning rate, batch size, dropout, optimizer).
+    \item Run many trials in parallel across cluster resources.
+    \item Use pruning schedulers (e.g., ASHA) to stop weak trials early.
+    \item Keep top checkpoints and export best configuration.
+\end{itemize}
+\vspace{1mm}
+Result: faster iteration and better utilization of available GPUs.
+\end{frame}
+
+\begin{frame}[t]{PyTorch Distributed: What and When}
+\begin{itemize}
+    \item \textbf{torch.distributed (DDP)} is the default baseline for multi-node training in both industry and academia.
+    \item Most common CPU backend: \texttt{gloo}; for GPUs in production: \texttt{nccl}.
+    \item Typical launch pattern: \texttt{torchrun} + one process per device (or one per CPU node in demos).
+    \item Best fit: stable training jobs where you control infrastructure and need maximum performance.
+\end{itemize}
+\vspace{1mm}
+Rule of thumb: start from DDP mental model first, then introduce Ray for orchestration and scale management.
+\end{frame}
+
+\begin{frame}[t]{DDP vs Ray Train: Practical Choice}
+\begin{tabular}{@{}p{3.0cm}p{4.0cm}p{4.3cm}@{}}
+\toprule
+Aspect & PyTorch Distributed & Ray Train \\
+\midrule
+Abstraction & Low-level, explicit control & Higher-level orchestration \\
+Setup & Manual launch and env setup & Unified cluster/runtime layer \\
+Fault handling & Mostly manual & Built-in recovery patterns \\
+Best for & Peak performance, custom loops & Many experiments, elastic scaling \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+In practice teams combine both: DDP-style training logic wrapped by Ray execution.
+\end{frame}
+
+\begin{frame}[t,fragile]{CPU Cluster Emulation with Docker Compose}
+\centering
+\begin{tikzpicture}[
+    nodebox/.style={draw, rounded corners, align=center, minimum width=3.3cm, minimum height=0.95cm, fill=cyan!12},
+    arr/.style={-{Latex[length=2.5mm]}, thick}
+]
+\node[nodebox, fill=orange!15] (compose) {docker-compose\\control plane};
+\node[nodebox, below left=1.2cm and 1.2cm of compose] (master) {torch-node-1\\master rank 0};
+\node[nodebox, below=1.2cm of compose] (worker1) {torch-node-2\\worker rank 1};
+\node[nodebox, below right=1.2cm and 1.2cm of compose] (worker2) {torch-node-N\\worker rank N-1};
+\node[nodebox, below=1.1cm of worker1, fill=green!14, minimum width=6.0cm] (ray) {ray-head + ray-worker (scaled)};
+
+\draw[arr] (compose) -- (master);
+\draw[arr] (compose) -- (worker1);
+\draw[arr] (compose) -- (worker2);
+\draw[arr] (compose) -- (ray);
+\end{tikzpicture}
+\vspace{1mm}
+\begin{itemize}
+    \item \texttt{WORLD\_SIZE=3 docker compose ... --scale torch-node=3}
+    \item \texttt{docker compose ... --scale ray-worker=3}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{When to Show Demo in This Lecture}
+Recommended pacing for a 90-minute class:
+\begin{enumerate}
+    \item \textbf{After pipeline basics (minute 20--25):} run quick YOLO CPU fine-tune (1 epoch).
+    \item \textbf{After reproducibility section (minute 40--45):} show ClearML run page and tracked artifacts.
+    \item \textbf{After distributed theory (minute 60--70):} run Docker-based DDP and then Ray worker scaling.
+\end{enumerate}
+\vspace{1mm}
+Keep each live demo under 3--5 minutes and prepare screenshots as fallback.
+\end{frame}
+
+\begin{frame}[t]{Mock Slide: What to Insert (System Architecture)}
+\imgmock{Target image: \textbf{"End-to-end ML training architecture"}}{Show data source, preprocessing, feature store, training workers, validation service, model registry, and deployment endpoint. Add arrows for offline training flow and online inference flow in different colors.}
+\end{frame}
+
+\begin{frame}[t]{Mock Slide: What to Insert (Ray Cluster)}
+\imgmock{Target image: \textbf{"Ray cluster topology for training"}}{Draw one head node and 3--6 worker nodes with CPU/GPU labels. Visualize task queue, object store, and autoscaler. Add a small legend: blue for data, orange for training, green for tuning trials.}
+\end{frame}
+
+\begin{frame}[t]{Mock Slide: What to Insert (Live Demo Setup)}
+\imgmock{Target image: \textbf{"Classroom live-demo command map"}}{Create a terminal-style infographic with 3 blocks: (1) YOLO fine-tune command, (2) ClearML dashboard screenshot area, (3) Docker scale commands for torch-node and ray-worker. Add expected runtime labels: 2--5 min each.}
+\end{frame}
+
+\begin{frame}[t]{Tools Ecosystem}
+\begin{itemize}
+    \item \textbf{Modeling:} PyTorch, Lightning, Hugging Face Transformers.
+    \item \textbf{Tracking:} ClearML (primary) or MLflow for metrics, configs, and artifacts.
+    \item \textbf{Scaling:} Ray for distributed data processing, training, and HPO.
+    \item \textbf{Serving:} model registry + deployment pipeline with rollback strategy.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Conclusion}
+Training is engineering orchestration, not only gradient updates.
+\vspace{1mm}
+\begin{itemize}
+    \item Understand each pipeline component and its failure modes.
+    \item Optimize data quality and reproducibility before model complexity.
+    \item Use Ray when scale and experiment throughput become bottlenecks.
+\end{itemize}
+\end{frame}
+
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}

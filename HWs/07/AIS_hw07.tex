@@ -1,0 +1,137 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, HW 7} %% that will be typeset on the
+\subtitle{Model Deployment with Triton
+\\ \  \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+% \usepackage{subfigure}
+\usepackage{floatrow}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+% \usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}[numbered]
+\usetikzlibrary{graphs}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+\begin{frame}[t]{Task 1 --- Model Preparation \& Triton Deployment}
+\vspace{-0.3cm}
+\textbf{Short description}: Deploy a YOLO instance segmentation model to production using the full NVIDIA stack, following the tutorial below.
+
+\textbf{Artifacts}: Repository with code and PDF report with screenshots for each step.
+
+\textbf{Requirements}
+\footnotesize
+Tutorial \& repo: \url{https://youtu.be/ljqyuDxd_H0} \quad \url{https://github.com/Koldim2001/Triton_example}\\[2pt]
+Use \texttt{yolov8n-seg} (instance segmentation) instead of the ResNet-152 shown in the tutorial.
+\begin{enumerate}
+    \item \textbf{Export to ONNX}: export the model from PyTorch with a dummy input and dynamic axes so it accepts variable batch sizes.
+    \item \textbf{Triton file structure}: organize \texttt{models/<name>/<version>/model.onnx} and write \texttt{config.pbtxt} (platform, input/output tensor names, types, shapes, \texttt{max\_batch\_size}).
+    \item \textbf{Launch Triton in Docker} with GPU passthrough. Expose ports \texttt{8000} (HTTP), \texttt{8001} (gRPC), \texttt{8002} (metrics).
+    \item \textbf{FastAPI async service}: implement preprocessing identical to training pipeline, call Triton via \texttt{tritonclient} over gRPC asynchronously, return segmentation results (masks + class labels).
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}[t]{Task 1 --- TensorRT, Monitoring \& Advanced Triton}
+\footnotesize
+\begin{enumerate}
+    \setcounter{enumi}{4}
+    \item \textbf{TensorRT optimization}: convert the ONNX model to \texttt{.plan} using \texttt{trtexec} inside the NVIDIA container. Enable FP16 quantization for maximum throughput on the target GPU.
+    \item \textbf{Monitoring}: configure Prometheus to scrape metrics from port \texttt{8002}; import a Grafana dashboard showing RPS, latency breakdown (preprocessing / inference / postprocessing), GPU utilization, and average batch size.
+    \item \textbf{Advanced Triton features}:
+    \begin{itemize}
+        \item Enable \textbf{dynamic batching} to merge concurrent single-image requests into one GPU batch.
+        \item Configure \textbf{instance group} to run multiple model copies in parallel.
+        \item Run a load test (e.g.\ Locust) and show Grafana metrics before and after enabling these features.
+    \end{itemize}
+\end{enumerate}
+
+\end{frame}
+
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}

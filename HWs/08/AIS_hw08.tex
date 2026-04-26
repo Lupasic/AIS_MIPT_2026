@@ -1,0 +1,185 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, HW 8} %% that will be typeset on the
+\subtitle{Gradio
+\\ \  \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+% \usepackage{subfigure}
+\usepackage{floatrow}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+% \usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}[numbered]
+\usetikzlibrary{graphs}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+\begin{frame}[t]{Goal of the Assignment}
+\vspace*{-0.4cm}
+\textbf{Short description:} Build interactive Gradio web applications covering REST API integration, UI components, and ML model deployment.
+
+\begin{enumerate}
+    \item Get familiar with the Gradio framework for building interactive web demos.
+    \item Integrate external REST APIs with various input/output components.
+    \item Use advanced Gradio layout components: tabs, gallery, dataframe, JSON.
+    \item Build a Gradio interface for the YOLO instance segmentation model from HW 7.
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}[t]{Task 1}
+\vspace{-0.3cm}
+\textbf{Short description}: Build a joke application and extend it with automatic Russian translation.
+
+\textbf{Artifacts}: Code (\texttt{.py} files) and PDF report with screenshots for each subtask.
+
+\textbf{Requirements}
+\footnotesize
+\begin{enumerate}
+    \item Implement a Gradio app that fetches and displays a random joke on button press.\\
+    Use API: \url{https://official-joke-api.appspot.com/random_joke}
+    \item Extend the app: add a button to translate the joke into Russian.\\
+    Suggested model: \texttt{facebook/nllb-200-distilled-600M}
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}[t]{Task 2}
+\vspace{-0.3cm}
+\textbf{Short description}: Build a weather application and an image gallery application.
+
+\textbf{Artifacts}: Code (\texttt{.py} files) and PDF report with screenshots for each subtask.
+
+\textbf{Requirements}
+\footnotesize
+\begin{enumerate}
+    \item Implement a Gradio app that returns temperature and wind speed by user-provided coordinates.
+    The user selects the temperature unit: Celsius or Fahrenheit.
+    Use API: \url{https://open-meteo.com/}
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}[t]{Task 3}
+\vspace{-0.3cm}
+\textbf{Short description}: Implement a full CRUD GUI for a REST API using Gradio tabs.
+
+\textbf{Artifacts}: Code (\texttt{.py} files) and PDF report with screenshots for each operation.
+
+\textbf{Requirements}
+\footnotesize
+Implement a Gradio app providing GUI for \texttt{/posts} at \url{https://jsonplaceholder.typicode.com/}.
+Each CRUD operation is placed on a separate tab; HTTP response body is shown in \texttt{gr.JSON}.
+\begin{itemize}
+    \item \textbf{Read N}: fetch first N posts $\rightarrow$ \texttt{gr.Dataframe} with fields \textit{userId, id, title, body}
+    \item \textbf{Read one}: fetch post by ID $\rightarrow$ fields: \textit{userId, title, body}
+    \item \textbf{Create}: create new post $\rightarrow$ fields: \textit{userId, title, body}
+    \item \textbf{Update}: update post by ID $\rightarrow$ fields: \textit{userId, title, body}
+    \item \textbf{Delete}: delete post by ID
+\end{itemize}
+Reference: \url{https://huggingface.co/learn/llm-course/en/chapter9/7}
+
+\end{frame}
+
+\begin{frame}[t]{Task 4}
+\vspace{-0.3cm}
+\textbf{Short description}: Build a Gradio interface for the YOLO instance segmentation model deployed via Triton Inference Server (with FastAPI) from HW 7.
+
+\textbf{Artifacts}: Code (\texttt{.py} files) and PDF report with screenshots.
+
+\textbf{Requirements}
+\footnotesize
+\begin{itemize}
+    \item Reuse the full deployment stack from HW 7 (Triton + FastAPI service).
+    \item The user uploads an image in the Gradio UI; the app sends it to the \textbf{FastAPI} endpoint from HW 7 and displays the returned annotated image with segmentation masks and class labels overlaid.
+    \item Inference must go through the HW 7 service stack, not directly through the YOLO model.
+\end{itemize}
+
+\end{frame}
+
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}

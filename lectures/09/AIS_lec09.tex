@@ -1,0 +1,473 @@
+% \documentclass[aspectratio=169,notes]{beamer}
+\documentclass[aspectratio=169]{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage{polyglossia}
+\setmainlanguage{english} %% main locale instead of `english`, you
+%% can typeset the presentation in either Czech or Slovak,
+%% respectively.
+\setotherlanguages{russian} %% The additional keys allow
+%%
+%%   \begin{otherlanguage}{czech}   ... \end{otherlanguage}
+%%   \begin{otherlanguage}{slovak}  ... \end{otherlanguage}
+%%
+%% These macros specify information about the presentation
+\title[Artificial Intelligence Software (AIS)]{Artificial Intelligence Software, Lecture 9} %% that will be typeset on the
+\subtitle{Deep Learning Deployment
+\\ Triton Inference Server and TensorRT Optimization \\ \  } %% title page.
+\author{Oleg Bulichev}
+%% These additional packages are used within the document:
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usetikzlibrary{decorations.pathreplacing,calligraphy,calc,graphs}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+\usepackage{subfigure}
+% \usepackage{floatrow}
+% \usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{todonotes}
+\usepackage{fontspec}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{qrcode}
+\usepackage{animate}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{colortbl}
+
+\graphicspath{{resources/}}
+\frenchspacing
+
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+\usetikzlibrary{graphs}
+\usetikzlibrary{positioning,arrows.meta}
+
+% \usepackage[backend=biber,style=ieee,autocite=footnote]{biblatex}
+% \addbibresource{biblio.bib}
+% \DefineBibliographyStrings{english}{%
+%   bibliography = {References},}
+
+\newcommand{\oleg}[2][] {\todo[color=red, #1] {OLEG:\\ #2}}
+\newcommand{\fbckg}[1]{\usebackgroundtemplate{\includegraphics[width=\paperwidth]{#1}}}%frame background
+
+\usepackage[framemethod=TikZ]{mdframed}
+\newcommand{\dbox}[1]{
+\begin{mdframed}[roundcorner=3pt, backgroundcolor=yellow, linewidth=0]
+\vspace{1mm}
+{#1}
+\vspace{1mm}
+\end{mdframed}
+}
+
+\newcommand{\imgmock}[2]{
+\fbox{\parbox[c][0.48\textheight][c]{0.92\linewidth}{\centering\textbf{Mock image placeholder}\\[2mm]#1\\[2mm]\footnotesize #2}}
+}
+
+\begin{document}
+\setlength{\abovedisplayskip}{0pt}
+\setlength{\belowdisplayskip}{0pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+
+\fbckg{fibeamer/figs/title_page.png}
+\frame[c]{\setcounter{framenumber}{0}
+    \usebeamerfont{title}%
+    \usebeamercolor[fg]{title}%
+    \begin{minipage}[b][6.5\baselineskip][b]{\textwidth}%
+        \textcolor{black}{\raggedright\inserttitle}
+    \end{minipage}
+    % \vskip-1.5\baselineskip
+
+    \usebeamerfont{subtitle}%
+    \usebeamercolor[fg]{framesubtitle}%
+    \begin{minipage}[b][3\baselineskip][b]{\textwidth}
+        \raggedright%
+        \insertsubtitle%
+    \end{minipage}
+    \vskip.25\baselineskip
+}
+%   \frame[c]{\maketitle}
+
+\fbckg{fibeamer/figs/common.png}
+
+\note{\scriptsize \begin{itemize}
+        \item \
+    \end{itemize}}
+
+% ---------------------------------------------------------------
+% LECTURE PLAN
+% ---------------------------------------------------------------
+\begin{frame}[t]{Lecture Plan}
+\begin{enumerate}
+    \item Why production inference differs from research
+    \item \textbf{Model Export}: PyTorch $\rightarrow$ ONNX
+    \item \textbf{Triton Inference Server}: structure, config, Docker
+    \item \textbf{FastAPI} wrapper + \textbf{tritonclient} (gRPC)
+    \item \textbf{TensorRT} optimization: FP16, \texttt{trtexec}
+    \item \textbf{Monitoring}: Prometheus + Grafana
+    \item \textbf{Advanced Triton}: Dynamic Batching, Instance Groups
+    \item \textbf{Load Testing}: Locust
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[t]{Tutorial}
+    \framesubtitle{Video}
+    \vspace{-0.6cm}
+    \begin{figure}[H]
+        \href{https://youtu.be/ljqyuDxd_H0?si=qEFWLIx_gVdDu4D-}{
+            \centering\includegraphics[height=6cm,width=1\textwidth,keepaspectratio]{tutor.jpg}}
+        \label{fig:tutor.jpg}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[t]{References}
+\framesubtitle{}
+    \begin{itemize}
+    \item \href{https://www.youtube.com/watch?v=6v7T-0fA09M}{Методы сжатия нейронных сетей (дистилляция, квантизация, pruning)}
+    \item \href{https://www.youtube.com/watch?v=9S69v_27v-M}{Мониторинг и Логи ПРОДАКШЕН уровня — Grafana + Loki + Prometheus + Promtail}
+    \item \href{https://www.whatap.io/ko/blog/190/}{Comparing AI Inference Optimization Tools: TensorRT vs ONNX Runtime vs Triton} 
+    \item \href{https://www.youtube.com/watch?v=9TJx7QTr0S8}{Server Monitoring // Prometheus and Grafana Tutorial}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Research vs.\ Production Inference}
+\framesubtitle{Why can't we just \texttt{model.predict()}?}
+\begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+        \textbf{Research / Notebook}
+        \begin{itemize}
+            \item One request at a time
+            \item No latency SLA
+            \item GPU underutilized between calls
+            \item Framework-specific code everywhere
+        \end{itemize}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+        \textbf{Production Server}
+        \begin{itemize}
+            \item Hundreds of concurrent users
+            \item P99 latency $<$ 100\,ms
+            \item GPU must stay busy
+            \item Hardware-optimized execution graph
+        \end{itemize}
+    \end{column}
+\end{columns}
+\vspace{3mm}
+\dbox{A production inference stack decouples the model from the serving logic and optimizes each layer independently.}
+\end{frame}
+
+\begin{frame}[t]{The Full Stack We Will Build}
+\framesubtitle{End-to-end deployment architecture}
+\vspace{-0.3cm}
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={draw, rounded corners=3pt, minimum width=2.2cm, minimum height=0.7cm, align=center, font=\small},
+    arr/.style={-Stealth, thick},
+    node distance=0.5cm and 0.3cm
+]
+\node[box, fill=blue!15]  (client)  {User / Browser};
+\node[box, fill=green!15, right=1.2cm of client]  (api) {FastAPI\\service};
+\node[box, fill=orange!15, right=1.2cm of api]    (triton) {Triton\\Inference Server};
+\node[box, fill=red!15,    right=1.2cm of triton] (gpu) {GPU\\(TensorRT)};
+\node[box, fill=gray!15,   below=0.8cm of triton] (prom) {Prometheus\\+ Grafana};
+
+\draw[arr] (client)  -- node[above,font=\footnotesize]{HTTP} (api);
+\draw[arr] (api)     -- node[above,font=\footnotesize]{gRPC} (triton);
+\draw[arr] (triton)  -- node[above,font=\footnotesize]{CUDA} (gpu);
+\draw[arr] (triton)  -- node[right,font=\footnotesize]{:8002} (prom);
+\end{tikzpicture}
+\end{center}
+\vspace{1mm}
+\footnotesize
+\textbf{Ports}: \texttt{8000} HTTP · \texttt{8001} gRPC · \texttt{8002} metrics (Prometheus)
+\end{frame}
+
+\begin{frame}[t]{What Is ONNX?}
+\framesubtitle{Open Neural Network Exchange}
+\vspace*{-0.4cm}
+\textbf{ONNX} is a hardware-agnostic, open format for storing trained neural network graphs.
+\vspace{2mm}
+\begin{tabular}{@{}p{3.2cm}p{8.0cm}@{}}
+\toprule
+Feature & Meaning \\
+\midrule
+Portable & Run the same \texttt{.onnx} file with PyTorch, TensorRT, OpenVINO, CoreML\ldots \\
+Graph-based & Operators (Conv, ReLU, BN) are stored as a static computation graph \\
+Runtime-agnostic & No Python, no PyTorch dependency on the server \\
+Optimizable & Graph-level optimizations before hardware compilation \\
+\bottomrule
+\end{tabular}
+
+{ONNX is the \textit{lingua franca} of deep learning inference.
+Export once --- deploy anywhere.}
+\end{frame}
+
+\begin{frame}[t,fragile]{Exporting ResNet-152 to ONNX}
+\vspace{-0.6cm}
+\begin{lstlisting}[language=Python, basicstyle=\footnotesize\ttfamily]
+# 1. Load model and append Softmax
+backbone = models.resnet152(weights="DEFAULT")
+backbone.eval()
+model = torch.nn.Sequential(backbone, torch.nn.Softmax(dim=1))
+# 2. Dummy input (any valid shape; used for tracing)
+dummy = torch.randn(1, 3, 224, 224)
+# 3. Export
+torch.onnx.export(
+    model, dummy, "resnet152.onnx",
+    input_names=["input"],
+    output_names=["output"],
+    dynamic_axes={          # allow variable batch size
+        "input":  {0: "batch_size"},
+        "output": {0: "batch_size"},},
+    opset_version=17,)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[t]{Why Dynamic Axes?}
+\framesubtitle{Making the model batch-size agnostic}
+Without \texttt{dynamic\_axes} the ONNX graph has a \textit{fixed} batch dimension of 1.
+\vspace{2mm}
+\begin{itemize}
+    \item Triton and TensorRT need to send batches larger than 1 to saturate the GPU.
+    \item A fixed-shape model will reject any input tensor whose batch size $\neq 1$.
+    \item Dynamic axes mark axis 0 of \texttt{input} and \texttt{output} as symbolic
+          (\texttt{"batch\_size"}), so the runtime can reshape them freely.
+\end{itemize}
+\vspace{2mm}
+\dbox{Always set \texttt{dynamic\_axes} for at least the batch dimension when targeting a production server.}
+\end{frame}
+
+\begin{frame}[t]{Why Add Softmax?}
+\framesubtitle{Convenience modification before export}
+\begin{itemize}
+    \item ResNet's last layer produces raw \textbf{logits} --- un-normalized scores.
+    \item Downstream code then needs to apply \texttt{softmax} itself every time.
+    \item By appending \texttt{torch.nn.Softmax(dim=1)} \textit{before} export, the ONNX
+          model outputs class \textbf{probabilities} directly.
+    \item The FastAPI response can read \texttt{argmax} straight from the Triton output.
+\end{itemize}
+\vspace{2mm}
+\textbf{Rule of thumb:} bake post-processing into the graph whenever the extra operation is cheap and always applied.
+\end{frame}
+
+\begin{frame}[t]{NVIDIA Triton Inference Server}
+\framesubtitle{What it is and what it solves}
+Triton is a production-grade, open-source inference serving system by NVIDIA.
+\vspace{2mm}
+\begin{tabular}{@{}p{3.4cm}p{8.0cm}@{}}
+\toprule
+Capability & Details \\
+\midrule
+Multi-framework & ONNX Runtime, TensorRT, TensorFlow, PyTorch \\
+Dynamic Batching & Aggregates concurrent single requests into one GPU batch \\
+Instance Groups & Runs $N$ copies of a model in parallel on one or more GPUs \\
+HTTP + gRPC & Clients can use either protocol \\
+Metrics & Exposes latency, throughput, GPU utilization\\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}[t,fragile]{Triton: Model Repository Structure}
+\framesubtitle{The required folder layout}
+\vspace*{-0.4cm}
+Triton expects a strict directory hierarchy:
+\begin{lstlisting}[language=bash, basicstyle=\footnotesize\ttfamily]
+models/
+  resnet152/           # model name (used in API calls)
+    config.pbtxt       # model configuration file
+    1/                 # version number (integer folder)
+      model.onnx       # the model file
+\end{lstlisting}
+\vspace{2mm}
+Key rules:
+\begin{itemize}
+    \item The version folder \textit{must} be a number (\texttt{1}, \texttt{2}, \ldots).
+    \item The file inside must be named \texttt{model.onnx} (or \texttt{model.plan} for TensorRT).
+    \item Multiple versions can coexist; Triton serves the latest by default.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[t]{FastAPI Wrapper: Architecture}
+\framesubtitle{Why an extra API layer?}
+\begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+        \textbf{Triton speaks tensors.}\\
+        It expects raw FP32 arrays with exact shapes.
+        \vspace{3mm}
+
+        The user sends a \texttt{.jpg} file.
+        Someone must bridge the gap.
+    \end{column}
+    \begin{column}{0.49\textwidth}
+        \textbf{FastAPI service responsibilities:}
+        \begin{enumerate}
+            \item Accept multipart image upload
+            \item Run preprocessing pipeline
+            \item Call Triton via \texttt{tritonclient}
+            \item Return JSON with top class
+        \end{enumerate}
+    \end{column}
+\end{columns}
+\vspace{3mm}
+\dbox{The FastAPI layer is \textit{thin}: no model logic, no weights. Preprocessing + glue code only.}
+\end{frame}
+
+\begin{frame}[t,fragile]{FastAPI + tritonclient: gRPC Inference}
+\vspace*{-0.5cm}
+\begin{lstlisting}[language=Python, basicstyle=\footnotesize\ttfamily]
+async def triton_infer(image_np: np.ndarray) -> np.ndarray:
+    client = grpcclient.InferenceServerClient("localhost:8001")
+    inp = grpcclient.InferInput("input", image_np.shape, "FP32")
+    inp.set_data_from_numpy(image_np)
+    out = grpcclient.InferRequestedOutput("output")
+    response = await client.infer(
+        model_name="resnet152",
+        inputs=[inp],
+        outputs=[out],)
+    return response.as_numpy("output")   # shape: (1, 1000)
+\end{lstlisting}
+\textbf{gRPC vs HTTP}: gRPC serialization is $\sim$2$\times$ faster for large tensors; use it whenever the client supports it.
+\end{frame}
+
+\begin{frame}[t]{TensorRT: What and Why}
+\framesubtitle{Hardware-specific compilation of the inference graph}
+\textbf{TensorRT} compiles an ONNX model into a hardware-optimized \texttt{.plan} engine.
+\vspace{2mm}
+\begin{tabular}{@{}p{3.0cm}p{8.2cm}@{}}
+\toprule
+Optimization & Effect \\
+\midrule
+Layer fusion & Merges Conv+BN+ReLU into a single CUDA kernel \\
+Kernel autotuning & Selects the fastest GEMM algorithm for the exact GPU \\
+FP16 / INT8 & Halves or quarters memory bandwidth; faster tensor core ops \\
+Memory pooling & Pre-allocates GPU buffers, removes allocation overhead \\
+\bottomrule
+\end{tabular}
+
+A TensorRT-compiled ResNet-152 in FP16 runs \textbf{2--4$\times$ faster} than ONNX Runtime on the same GPU.
+\end{frame}
+
+
+\begin{frame}[t,fragile]{Serving TensorRT with Triton}
+\framesubtitle{Switching from ONNX to TensorRT engine --- only two changes}
+\begin{enumerate}
+    \item Place \texttt{model.plan} in the version folder instead of \texttt{model.onnx}.
+    \item Update \texttt{config.pbtxt}:
+\end{enumerate}
+\vspace{2mm}
+\begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+        \textbf{ONNX Runtime}
+\begin{lstlisting}[basicstyle=\footnotesize\ttfamily]
+platform: "onnxruntime_onnx"
+\end{lstlisting}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+        \textbf{TensorRT}
+\begin{lstlisting}[basicstyle=\footnotesize\ttfamily]
+platform: "tensorrt_plan"
+\end{lstlisting}
+    \end{column}
+\end{columns}
+\vspace{2mm}
+Everything else (FastAPI, tritonclient calls, monitoring) stays identical.
+\dbox{The engine file is GPU-specific. Recompile with \texttt{trtexec} when moving to a different GPU model.}
+\end{frame}
+
+\begin{frame}[t]{Monitoring: Prometheus + Grafana}
+\framesubtitle{Observability for inference servers}
+Triton exposes a \textbf{Prometheus-compatible} metrics endpoint at \texttt{:8002/metrics}.
+\vspace{2mm}
+\begin{tabular}{@{}p{6.0cm}p{6.8cm}@{}}
+\toprule
+Metric & Meaning \\
+\midrule
+\texttt{nv\_inference\_request\_success} & Total successful inference requests \\
+\texttt{nv\_inference\_queue\_duration\_us} & Time requests spend waiting in queue \\
+\texttt{nv\_inference\_compute\_infer\_duration\_us} & Pure GPU compute time \\
+\texttt{nv\_gpu\_utilization} & GPU utilization \% \\
+\texttt{nv\_gpu\_memory\_used\_bytes} & GPU memory consumed \\
+\bottomrule
+\end{tabular}
+
+\textbf{Computed from raw metrics}: RPS, P50/P95/P99 latency, avg batch size --- derive these in Grafana via PromQL.
+\end{frame}
+
+
+\begin{frame}[t,fragile]{Dynamic Batching}
+\framesubtitle{Triton's killer feature for high throughput}
+\begin{columns}[T,onlytextwidth]
+    \begin{column}{0.54\textwidth}
+        \textbf{Without dynamic batching:}
+        \begin{itemize}
+            \item Each HTTP request $\Rightarrow$ 1 GPU forward pass
+            \item GPU is mostly idle between requests
+            \item Low throughput under concurrent load
+        \end{itemize}
+        \vspace{3mm}
+        \textbf{With dynamic batching:}
+        \begin{itemize}
+            \item Triton queues requests for up to $N$ $\mu$s
+            \item Merges them into a single large batch
+            \item 1 GPU forward pass serves many clients
+        \end{itemize}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+        Add to \texttt{config.pbtxt}:
+\begin{lstlisting}[basicstyle=\small\ttfamily]
+dynamic_batching {
+  max_queue_delay_microseconds:
+    100
+}
+\end{lstlisting}
+        Triton will merge up to \texttt{max\_batch\_size} requests within the delay window.
+    \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t,fragile]{Instance Groups}
+\framesubtitle{Running multiple model copies in parallel}
+        Even with dynamic batching, a single model instance can become a bottleneck at very high RPS.
+        \vspace{2mm}
+
+        \textbf{Instance Groups} let Triton load $N$ copies of the model on the GPU simultaneously, each serving requests independently.
+
+\dbox{For small models (MobileNet-level), \texttt{count: 2--4} often doubles throughput. For large models (ViT-Large), VRAM is the limit.}
+\end{frame}
+
+\begin{frame}[t]{Load Testing with Locust}
+\framesubtitle{Simulating real user traffic}
+\textbf{Locust} is a Python load-testing tool that spawns many virtual users, each running your task functions asynchronously.
+\vspace{2mm}
+\begin{itemize}
+    \item Define user behavior in pure Python --- no XML, no DSL.
+    \item Web UI shows RPS, response times, and failures in real time.
+    \item Ramp users up gradually to find the saturation point.
+    \item Use together with Grafana to see GPU utilization vs.\ RPS.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Summary: The Complete Pipeline}
+\framesubtitle{What you will implement in the tutorial}
+\begin{enumerate}
+    \item \textbf{Export}: \texttt{torch.onnx.export} with \texttt{dynamic\_axes} + Softmax head
+    \item \textbf{Deploy}: Triton in Docker, \texttt{config.pbtxt}, ONNX Runtime backend
+    \item \textbf{Wrap}: FastAPI + \texttt{tritonclient} gRPC, TorchVision preprocessing
+    \item \textbf{Optimize}: \texttt{trtexec --fp16}, switch to \texttt{tensorrt\_plan} platform
+    \item \textbf{Monitor}: Prometheus scrapes \texttt{:8002}, Grafana dashboard for latency \& GPU
+    \item \textbf{Tune}: Dynamic batching delay + instance group count
+    \item \textbf{Verify}: Locust load test, compare RPS before/after each optimization
+\end{enumerate}
+\end{frame}
+
+\fbckg{fibeamer/figs/last_page.png}
+\frame[plain]{}
+
+\end{document}

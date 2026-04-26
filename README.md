@@ -16,7 +16,11 @@ All class related material can be found in corresponding folder <<input_data>>
 * [Lecture 3 (AI Paper Pipeline: Writing, Reading, and Reviewing with AI)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/03/AIS_lec03.pdf)
 * [Lecture 4 (Data preprocessing)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/04/AIS_lec04.pdf)
 * [Lecture 5 (Data versioning by ClearML, Labeling tools)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/05/AIS_lec05.pdf)
-* [Lecture 5 (Model Selection and Sources)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/06/AIS_lec06.pdf)
+* [Lecture 6 (Model Selection and Sources)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/06/AIS_lec06.pdf)
+* [Lecture 7 (Training process)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/07/AIS_lec07.pdf)
+* [Lecture 8 (Experiments \& Hyperparameters)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/08/AIS_lec08.pdf)
+* [Lecture 9 (Deep Learning Deployment: Triton Inference Server and TensorRT Optimization)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/09/AIS_lec09.pdf)
+* [Lecture 10 (Web APIs and AI Interfaces: REST, FastAPI, and Gradio)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lectures/10/AIS_lec10.pdf)
 
 # Lab slides
 * [Lab 1 (Reproducible environment setup: Conda, UV, Docker)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/lab/01/AIS_lab01.pdf)
@@ -30,6 +34,8 @@ All class related material can be found in corresponding folder <<input_data>>
 * [HW 4 (Data versioning by ClearML, Labeling tools)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/04/AIS_hw04.pdf) 
 * [HW 5 (Model Selection and Sources)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/05/AIS_hw05.pdf) 
 * [HW 6 (Training process)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/06/AIS_hw06.pdf) 
+* [HW 7 (Deep Learning Deployment: Triton Inference Server and TensorRT Optimization)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/07/AIS_hw07.pdf) 
+* [HW 8 (Web APIs and AI Interfaces: REST, FastAPI, and Gradio)](https://github.com/Lupasic/AIS_MIPT_2026/blob/pub_2026/HWs/08/AIS_hw08.pdf) 
 
 
 
